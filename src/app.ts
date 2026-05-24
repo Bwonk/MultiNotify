@@ -1,0 +1,29 @@
+import express from "express";
+import cors from "cors";
+import helmet from "helmet";
+
+import authRoutes      from "./routes/auth.routes.js";
+import userRoutes      from "./routes/user.routes.js";
+import campaignRoutes  from "./routes/campaign.routes.js";
+import deliveryRoutes  from "./routes/delivery.routes.js";
+import { errorHandler, notFound } from "./middleware/error.middleware.js";
+
+const app = express();
+
+app.use(helmet());
+app.use(cors());
+app.use(express.json());
+
+app.get("/health", (_, res) =>
+  res.json({ status: "ok", timestamp: new Date().toISOString() })
+);
+
+app.use("/api/auth",       authRoutes);
+app.use("/api/users",      userRoutes);
+app.use("/api/campaigns",  campaignRoutes);
+app.use("/api/deliveries", deliveryRoutes);
+
+app.use(notFound);
+app.use(errorHandler);
+
+export default app;

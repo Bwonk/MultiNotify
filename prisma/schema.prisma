@@ -1,0 +1,85 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../generated/prisma"
+}
+
+datasource db {
+  provider = "mysql"
+}
+
+model Admin {
+  id        Int      @id @default(autoincrement())
+  email     String   @unique
+  password  String
+  name      String?
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@map("admins")
+}
+
+model User {
+  id               Int             @id @default(autoincrement())
+  email            String?         @unique
+  phone            String?         @unique
+  name             String?
+  preferredChannel Channel         @default(both) @map("preferred_channel")
+  isActive         Boolean         @default(true) @map("is_active")
+  createdAt        DateTime        @default(now()) @map("created_at")
+  deliveries       Delivery[]
+
+  @@map("users")
+}
+
+model Campaign {
+  id         Int            @id @default(autoincrement())
+  title      String
+  message    String         @db.Text
+  channel    Channel        @default(both)
+  status     CampaignStatus @default(draft)
+  sentAt     DateTime?      @map("sent_at")
+  createdAt  DateTime       @default(now()) @map("created_at")
+  deliveries Delivery[]
+
+  @@map("campaigns")
+}
+
+model Delivery {
+  id           Int             @id @default(autoincrement())
+  campaignId   Int             @map("campaign_id")
+  userId       Int             @map("user_id")
+  channel      DeliveryChannel
+  status       DeliveryStatus  @default(pending)
+  errorMessage String?         @db.Text @map("error_message")
+  createdAt    DateTime        @default(now()) @map("created_at")
+
+  campaign Campaign @relation(fields: [campaignId], references: [id], onDelete: Cascade)
+  user     User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("deliveries")
+}
+
+enum Channel {
+  email
+  whatsapp
+  sms
+  both
+}
+
+enum DeliveryChannel {
+  email
+  whatsapp
+  sms
+}
+
+enum DeliveryStatus {
+  pending
+  success
+  failed
+}
+
+enum CampaignStatus {
+  draft
+  sending
+  completed
+  failed
+}

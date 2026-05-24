@@ -1,0 +1,800 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MultiNotify Panel</title>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@400;500;600;700&family=Instrument+Sans:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #f5f3ef;
+  --white: #ffffff;
+  --text: #1a1814;
+  --text2: #6b6760;
+  --text3: #b0ada8;
+  --border: #e8e4de;
+  --accent: #1a1814;
+  --green: #1a6b3c;
+  --green-bg: #edf7f1;
+  --green-border: #c3e6d0;
+  --red: #9b2525;
+  --red-bg: #fdf1f1;
+  --red-border: #f0c5c5;
+  --blue: #1a3a6b;
+  --blue-bg: #edf2fd;
+  --amber: #7a4f1a;
+  --amber-bg: #fdf6ed;
+  --shadow: 0 1px 3px rgba(0,0,0,.06), 0 4px 12px rgba(0,0,0,.04);
+  --shadow-lg: 0 8px 32px rgba(0,0,0,.08);
+  --display: 'Bricolage Grotesque', sans-serif;
+  --body: 'Instrument Sans', sans-serif;
+  --radius: 12px;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { background: var(--bg); color: var(--text); font-family: var(--body); min-height: 100vh; }
+
+/* LOGIN SCREEN */
+#login-screen {
+  min-height: 100vh; display: flex; align-items: center; justify-content: center;
+  background: var(--bg);
+  background-image: radial-gradient(circle at 20% 50%, rgba(26,24,20,.03) 0%, transparent 60%),
+                    radial-gradient(circle at 80% 20%, rgba(26,24,20,.03) 0%, transparent 50%);
+}
+.login-box {
+  width: 100%; max-width: 400px; padding: 20px;
+}
+.login-logo {
+  text-align: center; margin-bottom: 40px;
+}
+.login-logo h1 {
+  font-family: var(--display); font-size: 28px; font-weight: 700;
+  letter-spacing: -.5px; color: var(--text);
+}
+.login-logo p { color: var(--text2); font-size: 14px; margin-top: 6px; }
+.login-card {
+  background: var(--white); border: 1px solid var(--border);
+  border-radius: 16px; padding: 32px; box-shadow: var(--shadow-lg);
+}
+.login-card h2 { font-family: var(--display); font-size: 18px; font-weight: 600; margin-bottom: 24px; }
+
+/* MAIN APP */
+#app { display: none; }
+
+/* LAYOUT */
+.layout { display: flex; min-height: 100vh; }
+
+.sidebar {
+  width: 260px; flex-shrink: 0;
+  background: var(--white); border-right: 1px solid var(--border);
+  display: flex; flex-direction: column;
+  position: fixed; top: 0; left: 0; bottom: 0;
+}
+.sidebar-logo {
+  padding: 24px; border-bottom: 1px solid var(--border);
+  display: flex; align-items: center; gap: 12px;
+}
+.logo-icon {
+  width: 36px; height: 36px; background: var(--text); border-radius: 8px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 16px; color: #fff; flex-shrink: 0;
+}
+.logo-text { font-family: var(--display); font-size: 16px; font-weight: 700; }
+.logo-sub { font-size: 11px; color: var(--text3); margin-top: 1px; }
+
+.sidebar-user {
+  padding: 16px 20px; border-bottom: 1px solid var(--border);
+  display: flex; align-items: center; gap: 10px;
+}
+.user-avatar {
+  width: 32px; height: 32px; background: var(--bg); border: 1px solid var(--border);
+  border-radius: 8px; display: flex; align-items: center; justify-content: center;
+  font-size: 13px; font-weight: 600; flex-shrink: 0;
+}
+.user-info { flex: 1; min-width: 0; }
+.user-name { font-size: 13px; font-weight: 500; truncate; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.user-role { font-size: 11px; color: var(--text3); }
+.status-dot { width: 7px; height: 7px; border-radius: 50%; background: #ccc; flex-shrink: 0; }
+.status-dot.on { background: #2ec971; box-shadow: 0 0 0 3px rgba(46,201,113,.15); }
+
+.nav { padding: 12px 12px; flex: 1; }
+.nav-section-label { font-size: 10px; color: var(--text3); letter-spacing: .08em; text-transform: uppercase; padding: 8px 10px 4px; }
+.nav-btn {
+  display: flex; align-items: center; gap: 10px;
+  width: 100%; padding: 9px 12px; border-radius: 8px;
+  background: none; border: none; cursor: pointer;
+  font-family: var(--body); font-size: 13px; font-weight: 500;
+  color: var(--text2); text-align: left; transition: all .15s;
+}
+.nav-btn:hover { background: var(--bg); color: var(--text); }
+.nav-btn.active { background: var(--text); color: #fff; }
+.nav-icon { font-size: 15px; width: 20px; text-align: center; }
+
+.sidebar-footer { padding: 16px 20px; border-top: 1px solid var(--border); }
+.logout-btn {
+  display: flex; align-items: center; gap: 8px;
+  font-size: 12px; color: var(--text3); background: none; border: none;
+  cursor: pointer; padding: 0; font-family: var(--body);
+}
+.logout-btn:hover { color: var(--red); }
+
+.main { margin-left: 260px; flex: 1; }
+
+.topbar {
+  padding: 20px 32px; border-bottom: 1px solid var(--border);
+  background: var(--white); display: flex; align-items: center; justify-content: space-between;
+  position: sticky; top: 0; z-index: 10;
+}
+.topbar-title { font-family: var(--display); font-size: 20px; font-weight: 700; }
+.topbar-desc { font-size: 13px; color: var(--text2); margin-top: 2px; }
+
+.content { padding: 32px; }
+
+/* PAGE */
+.page { display: none; }
+.page.active { display: block; animation: fadeIn .2s ease; }
+@keyframes fadeIn { from { opacity:0; transform:translateY(4px); } to { opacity:1; transform:none; } }
+
+/* CARDS */
+.card {
+  background: var(--white); border: 1px solid var(--border);
+  border-radius: var(--radius); padding: 24px; margin-bottom: 20px;
+  box-shadow: var(--shadow);
+}
+.card-title { font-family: var(--display); font-size: 15px; font-weight: 600; margin-bottom: 4px; }
+.card-desc { font-size: 13px; color: var(--text2); margin-bottom: 20px; }
+
+/* STATS */
+.stats-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 16px; margin-bottom: 24px; }
+.stat-card {
+  background: var(--white); border: 1px solid var(--border);
+  border-radius: var(--radius); padding: 20px; box-shadow: var(--shadow);
+}
+.stat-val { font-family: var(--display); font-size: 40px; font-weight: 700; line-height: 1; color: var(--text); }
+.stat-label { font-size: 12px; color: var(--text2); margin-top: 6px; }
+.stat-icon { font-size: 24px; margin-bottom: 12px; }
+
+/* FORMS */
+.field { margin-bottom: 16px; }
+.field label { display: block; font-size: 12px; font-weight: 500; color: var(--text); margin-bottom: 6px; }
+.field input, .field select, .field textarea {
+  width: 100%; background: var(--bg); border: 1.5px solid var(--border);
+  border-radius: 8px; padding: 10px 14px;
+  font-family: var(--body); font-size: 14px; color: var(--text);
+  outline: none; transition: border .15s, box-shadow .15s;
+  -webkit-appearance: none;
+}
+.field input:focus, .field select:focus, .field textarea:focus {
+  border-color: var(--text); box-shadow: 0 0 0 3px rgba(26,24,20,.06);
+  background: var(--white);
+}
+.field input::placeholder, .field textarea::placeholder { color: var(--text3); }
+.field textarea { resize: vertical; min-height: 100px; line-height: 1.6; }
+
+.field-row { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+.field-hint { font-size: 11px; color: var(--text3); margin-top: 4px; }
+
+/* BUTTONS */
+.btn {
+  display: inline-flex; align-items: center; gap: 7px;
+  padding: 10px 20px; border-radius: 8px; border: none;
+  font-family: var(--body); font-size: 13px; font-weight: 500;
+  cursor: pointer; transition: all .15s; white-space: nowrap;
+}
+.btn:active { transform: scale(.98); }
+.btn-primary { background: var(--text); color: #fff; }
+.btn-primary:hover { background: #2d2a25; }
+.btn-outline { background: transparent; border: 1.5px solid var(--border); color: var(--text2); }
+.btn-outline:hover { border-color: var(--text); color: var(--text); }
+.btn-green { background: var(--green-bg); color: var(--green); border: 1.5px solid var(--green-border); }
+.btn-green:hover { background: #d9f0e4; }
+.btn-red { background: var(--red-bg); color: var(--red); border: 1.5px solid var(--red-border); }
+.btn-red:hover { background: #f7dada; }
+.btn-row { display: flex; gap: 10px; flex-wrap: wrap; }
+.btn:disabled { opacity: .5; cursor: not-allowed; }
+.btn-full { width: 100%; justify-content: center; }
+
+/* TOAST */
+.toast-wrap { position: fixed; bottom: 24px; right: 24px; z-index: 999; display: flex; flex-direction: column; gap: 8px; }
+.toast {
+  background: var(--text); color: #fff; border-radius: 10px;
+  padding: 12px 18px; font-size: 13px; font-weight: 500;
+  box-shadow: var(--shadow-lg); display: flex; align-items: center; gap: 10px;
+  animation: slideIn .2s ease; min-width: 240px;
+}
+.toast.success { background: var(--green); }
+.toast.error { background: var(--red); }
+@keyframes slideIn { from { opacity:0; transform:translateY(8px); } to { opacity:1; transform:none; } }
+
+/* TABLE */
+.table-wrap { overflow-x: auto; border-radius: 10px; border: 1px solid var(--border); }
+table { width: 100%; border-collapse: collapse; font-size: 13px; }
+thead { background: var(--bg); }
+th { padding: 10px 16px; text-align: left; font-size: 11px; font-weight: 600; color: var(--text2); letter-spacing: .04em; text-transform: uppercase; white-space: nowrap; border-bottom: 1px solid var(--border); }
+td { padding: 13px 16px; border-bottom: 1px solid var(--border); color: var(--text2); vertical-align: middle; }
+td.bold { color: var(--text); font-weight: 500; }
+tbody tr:last-child td { border-bottom: none; }
+tbody tr:hover { background: var(--bg); }
+
+/* BADGES */
+.badge { display: inline-flex; align-items: center; gap: 4px; padding: 3px 10px; border-radius: 20px; font-size: 11px; font-weight: 500; }
+.badge-green { background: var(--green-bg); color: var(--green); }
+.badge-red { background: var(--red-bg); color: var(--red); }
+.badge-blue { background: var(--blue-bg); color: var(--blue); }
+.badge-amber { background: var(--amber-bg); color: var(--amber); }
+.badge-gray { background: var(--bg); color: var(--text2); border: 1px solid var(--border); }
+
+/* EMPTY */
+.empty { text-align: center; padding: 48px 24px; color: var(--text3); }
+.empty-icon { font-size: 36px; margin-bottom: 12px; }
+.empty-text { font-size: 14px; }
+
+/* MODAL */
+.modal-bg {
+  display: none; position: fixed; inset: 0; background: rgba(0,0,0,.3);
+  z-index: 200; align-items: center; justify-content: center;
+  backdrop-filter: blur(2px);
+}
+.modal-bg.show { display: flex; }
+.modal {
+  background: var(--white); border-radius: 16px; padding: 32px;
+  width: 100%; max-width: 460px; margin: 20px; box-shadow: var(--shadow-lg);
+  animation: fadeIn .2s ease;
+}
+.modal-title { font-family: var(--display); font-size: 18px; font-weight: 700; margin-bottom: 6px; }
+.modal-desc { font-size: 13px; color: var(--text2); margin-bottom: 24px; }
+.modal-footer { display: flex; gap: 10px; justify-content: flex-end; margin-top: 24px; }
+
+/* SUCCESS BANNER */
+.success-banner {
+  background: var(--green-bg); border: 1px solid var(--green-border);
+  border-radius: 10px; padding: 16px 20px; margin-bottom: 20px;
+  display: none; align-items: center; gap: 12px;
+}
+.success-banner.show { display: flex; }
+.success-banner-icon { font-size: 20px; }
+.success-banner-text { font-size: 13px; color: var(--green); font-weight: 500; }
+
+/* DIVIDER */
+.divider { border: none; border-top: 1px solid var(--border); margin: 20px 0; }
+
+/* CHANNEL PICKER */
+.channel-picker { display: flex; gap: 8px; flex-wrap: wrap; }
+.channel-opt {
+  flex: 1; min-width: 80px; padding: 10px 8px; border: 1.5px solid var(--border); border-radius: 10px;
+  cursor: pointer; text-align: center; transition: all .15s; background: var(--bg);
+}
+.channel-opt:hover { border-color: var(--text); }
+.channel-opt.selected { border-color: var(--text); background: var(--white); box-shadow: 0 0 0 3px rgba(26,24,20,.06); }
+.channel-opt-icon { font-size: 22px; margin-bottom: 6px; }
+.channel-opt-label { font-size: 12px; font-weight: 500; color: var(--text); }
+.channel-opt-sub { font-size: 10px; color: var(--text3); margin-top: 2px; }
+</style>
+</head>
+<body>
+
+<!-- LOGIN SCREEN -->
+<div id="login-screen">
+  <div class="login-box">
+    <div class="login-logo">
+      <h1>📣 MultiNotify</h1>
+      <p>Bildirim yönetim paneline hoş geldiniz</p>
+    </div>
+    <div class="login-card">
+      <h2>Giriş Yap</h2>
+      <div class="field">
+        <label>E-posta adresi</label>
+        <input type="email" id="l-email" placeholder="ornek@sirket.com" value="admin@test.com">
+      </div>
+      <div class="field">
+        <label>Şifre</label>
+        <input type="password" id="l-pass" placeholder="••••••••" value="123456">
+      </div>
+      <button class="btn btn-primary btn-full" onclick="doLogin()">Giriş Yap →</button>
+      <div id="l-err" style="margin-top:12px;font-size:13px;color:var(--red);display:none"></div>
+    </div>
+  </div>
+</div>
+
+<!-- MAIN APP -->
+<div id="app">
+  <div class="layout">
+    <aside class="sidebar">
+      <div class="sidebar-logo">
+        <div class="logo-icon">📣</div>
+        <div>
+          <div class="logo-text">MultiNotify</div>
+          <div class="logo-sub">Bildirim Paneli</div>
+        </div>
+      </div>
+      <div class="sidebar-user">
+        <div class="user-avatar" id="u-avatar">A</div>
+        <div class="user-info">
+          <div class="user-name" id="u-name-display">Admin</div>
+          <div class="user-role">Yönetici</div>
+        </div>
+        <div class="status-dot on" id="srv-dot" title="Sunucu durumu"></div>
+      </div>
+      <nav class="nav">
+        <div class="nav-section-label">Genel</div>
+        <button class="nav-btn active" onclick="goPage('dashboard',this)">
+          <span class="nav-icon">📊</span> Genel Bakış
+        </button>
+        <div class="nav-section-label" style="margin-top:8px">Yönetim</div>
+        <button class="nav-btn" onclick="goPage('campaigns',this)">
+          <span class="nav-icon">📢</span> Kampanyalar
+        </button>
+        <button class="nav-btn" onclick="goPage('users',this)">
+          <span class="nav-icon">👥</span> Kullanıcılar
+        </button>
+        <button class="nav-btn" onclick="goPage('logs',this)">
+          <span class="nav-icon">📋</span> Gönderim Geçmişi
+        </button>
+      </nav>
+      <div class="sidebar-footer">
+        <button class="logout-btn" onclick="doLogout()">⬡ Çıkış Yap</button>
+      </div>
+    </aside>
+
+    <div class="main">
+
+      <!-- DASHBOARD -->
+      <div id="topbar-dashboard" class="topbar">
+        <div><div class="topbar-title">Genel Bakış</div><div class="topbar-desc">Sistemin anlık durumu</div></div>
+        <button class="btn btn-outline" onclick="loadDash()">↻ Yenile</button>
+      </div>
+      <div id="topbar-campaigns" class="topbar" style="display:none">
+        <div><div class="topbar-title">Kampanyalar</div><div class="topbar-desc">Bildirim kampanyalarını oluştur ve yönet</div></div>
+        <button class="btn btn-primary" onclick="openNewCampaign()">+ Yeni Kampanya</button>
+      </div>
+      <div id="topbar-users" class="topbar" style="display:none">
+        <div><div class="topbar-title">Kullanıcılar</div><div class="topbar-desc">Bildirim alacak kişileri yönet</div></div>
+        <button class="btn btn-primary" onclick="openNewUser()">+ Kullanıcı Ekle</button>
+      </div>
+      <div id="topbar-logs" class="topbar" style="display:none">
+        <div><div class="topbar-title">Gönderim Geçmişi</div><div class="topbar-desc">Tüm gönderim kayıtları</div></div>
+        <button class="btn btn-outline" onclick="loadLogs()">↻ Yenile</button>
+      </div>
+
+      <div class="content">
+
+        <!-- DASHBOARD PAGE -->
+        <div class="page active" id="page-dashboard">
+          <div class="stats-grid">
+            <div class="stat-card">
+              <div class="stat-icon">📢</div>
+              <div class="stat-val" id="d-camps">—</div>
+              <div class="stat-label">Toplam Kampanya</div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-icon">👥</div>
+              <div class="stat-val" id="d-users">—</div>
+              <div class="stat-label">Kayıtlı Kullanıcı</div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-icon">✉️</div>
+              <div class="stat-val" id="d-dels">—</div>
+              <div class="stat-label">Toplam Gönderim</div>
+            </div>
+          </div>
+          <div class="card">
+            <div class="card-title">Son Kampanyalar</div>
+            <div class="card-desc">En son oluşturulan kampanyalar</div>
+            <div id="dash-camp-list"><div class="empty"><div class="empty-icon">📭</div><div class="empty-text">Henüz kampanya yok</div></div></div>
+          </div>
+        </div>
+
+        <!-- CAMPAIGNS PAGE -->
+        <div class="page" id="page-campaigns">
+          <div class="card">
+            <div class="card-title">Tüm Kampanyalar</div>
+            <div class="card-desc">Kampanya oluşturmak için sağ üstteki butona tıklayın</div>
+            <div id="camp-list"><div class="empty"><div class="empty-icon">📭</div><div class="empty-text">Henüz kampanya yok</div></div></div>
+          </div>
+        </div>
+
+        <!-- USERS PAGE -->
+        <div class="page" id="page-users">
+          <div class="card">
+            <div class="card-title">Kullanıcı Listesi</div>
+            <div class="card-desc">Bildirim gönderilecek kişiler</div>
+            <div id="user-list"><div class="empty"><div class="empty-icon">👤</div><div class="empty-text">Henüz kullanıcı yok</div></div></div>
+          </div>
+        </div>
+
+        <!-- LOGS PAGE -->
+        <div class="page" id="page-logs">
+          <div class="card">
+            <div class="card-title">Gönderim Kayıtları</div>
+            <div class="card-desc">Tüm email ve WhatsApp gönderimlerinin geçmişi</div>
+            <div style="margin-bottom:16px;display:flex;gap:10px;align-items:flex-end">
+              <div class="field" style="flex:1;margin:0">
+                <label>Kampanyaya Göre Filtrele</label>
+                <input type="number" id="log-filter" placeholder="Kampanya ID (boş bırakın = hepsi)">
+              </div>
+              <button class="btn btn-outline" onclick="loadLogs()">Filtrele</button>
+            </div>
+            <div id="log-list"><div class="empty"><div class="empty-icon">📋</div><div class="empty-text">Kayıt yükleniyor...</div></div></div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: Yeni Kampanya -->
+<div class="modal-bg" id="modal-campaign">
+  <div class="modal">
+    <div class="modal-title">Yeni Kampanya Oluştur</div>
+    <div class="modal-desc">Kampanyanızı oluşturun ve göndermek istediğiniz kanalı seçin</div>
+    <div class="field">
+      <label>Kampanya Başlığı</label>
+      <input type="text" id="c-title" placeholder="Örn: Yaz Sezonu İndirimi 🌞">
+    </div>
+    <div class="field">
+      <label>Mesaj</label>
+      <textarea id="c-msg" placeholder="Kullanıcılarınıza göndermek istediğiniz mesajı yazın..."></textarea>
+      <div class="field-hint">Bu mesaj seçilen kanallar aracılığıyla tüm kullanıcılara iletilecektir.</div>
+    </div>
+    <div class="field">
+      <label>Gönderim Kanalı</label>
+      <div class="channel-picker">
+        <div class="channel-opt selected" onclick="selectChannel('both',this)">
+          <div class="channel-opt-icon">📧📲</div>
+          <div class="channel-opt-label">Her İkisi</div>
+          <div class="channel-opt-sub">E-posta + WhatsApp</div>
+        </div>
+        <div class="channel-opt" onclick="selectChannel('email',this)">
+          <div class="channel-opt-icon">📧</div>
+          <div class="channel-opt-label">E-posta</div>
+          <div class="channel-opt-sub">Sadece e-posta</div>
+        </div>
+        <div class="channel-opt" onclick="selectChannel('whatsapp',this)">
+          <div class="channel-opt-icon">💬</div>
+          <div class="channel-opt-label">WhatsApp</div>
+          <div class="channel-opt-sub">Sadece WhatsApp</div>
+        </div>
+        <div class="channel-opt" onclick="selectChannel('sms',this)">
+          <div class="channel-opt-icon">📱</div>
+          <div class="channel-opt-label">SMS</div>
+          <div class="channel-opt-sub">Sadece SMS</div>
+        </div>
+      </div>
+      <input type="hidden" id="c-chan" value="both">
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="closeModal('modal-campaign')">İptal</button>
+      <button class="btn btn-primary" onclick="createCampaign()">Kampanya Oluştur</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: Yeni Kullanıcı -->
+<div class="modal-bg" id="modal-user">
+  <div class="modal">
+    <div class="modal-title">Kullanıcı Ekle</div>
+    <div class="modal-desc">Yeni bir kullanıcı ekleyin. En az bir iletişim bilgisi gereklidir.</div>
+    <div class="field">
+      <label>Ad Soyad</label>
+      <input type="text" id="u-name" placeholder="Ahmet Yılmaz">
+    </div>
+    <div class="field">
+      <label>E-posta Adresi</label>
+      <input type="email" id="u-email" placeholder="ahmet@ornek.com">
+    </div>
+    <div class="field">
+      <label>Telefon Numarası</label>
+      <input type="text" id="u-phone" placeholder="+905551234567">
+      <div class="field-hint">SMS ve WhatsApp için uluslararası format: +90 ile başlayın</div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="closeModal('modal-user')">İptal</button>
+      <button class="btn btn-primary" onclick="createUser()">Kullanıcı Ekle</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: Kampanya Gönder -->
+<div class="modal-bg" id="modal-send">
+  <div class="modal">
+    <div class="modal-title">Kampanya Gönder</div>
+    <div class="modal-desc" id="send-desc">Bu kampanyayı tüm aktif kullanıcılara göndermek istiyor musunuz?</div>
+    <div class="card" style="background:var(--bg);margin-bottom:0">
+      <div style="font-size:13px;color:var(--text2);margin-bottom:4px">Kampanya</div>
+      <div style="font-size:15px;font-weight:600;color:var(--text)" id="send-title">—</div>
+      <div style="font-size:13px;color:var(--text2);margin-top:8px" id="send-msg">—</div>
+      <div style="margin-top:12px"><span class="badge badge-blue" id="send-channel">—</span></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="closeModal('modal-send')">İptal</button>
+      <button class="btn btn-green" onclick="doSendCampaign()">✓ Evet, Gönder</button>
+    </div>
+  </div>
+</div>
+
+<!-- TOAST CONTAINER -->
+<div class="toast-wrap" id="toasts"></div>
+
+<script>
+const API = 'http://localhost:3000';
+let token = localStorage.getItem('mn_token') || '';
+let currentSendId = null;
+
+// INIT
+window.onload = () => {
+  if (token) showApp();
+  else document.getElementById('login-screen').style.display = 'flex';
+  checkHealth();
+  setInterval(checkHealth, 8000);
+};
+
+async function checkHealth() {
+  try {
+    const r = await fetch(`${API}/health`);
+    document.getElementById('srv-dot').className = 'status-dot ' + (r.ok ? 'on' : '');
+  } catch {
+    document.getElementById('srv-dot').className = 'status-dot';
+  }
+}
+
+// AUTH
+async function doLogin() {
+  const email = document.getElementById('l-email').value;
+  const pass = document.getElementById('l-pass').value;
+  try {
+    const { data, ok } = await req('POST', '/api/auth/login', { email, password: pass });
+    if (ok) {
+      token = data.data.token;
+      localStorage.setItem('mn_token', token);
+      document.getElementById('u-name-display').textContent = data.data.admin.name || data.data.admin.email;
+      document.getElementById('u-avatar').textContent = (data.data.admin.name || data.data.admin.email)[0].toUpperCase();
+      showApp();
+    } else {
+      const err = document.getElementById('l-err');
+      err.textContent = '⚠ ' + (data.message || 'Giriş başarısız');
+      err.style.display = 'block';
+    }
+  } catch {
+    const err = document.getElementById('l-err');
+    err.textContent = '⚠ Sunucuya bağlanılamadı. npm run dev çalışıyor mu?';
+    err.style.display = 'block';
+  }
+}
+
+function showApp() {
+  document.getElementById('login-screen').style.display = 'none';
+  document.getElementById('app').style.display = 'block';
+  loadDash();
+}
+
+function doLogout() {
+  localStorage.removeItem('mn_token');
+  token = '';
+  document.getElementById('app').style.display = 'none';
+  document.getElementById('login-screen').style.display = 'flex';
+}
+
+// NAVIGATION
+const topbars = ['dashboard','campaigns','users','logs'];
+function goPage(name, el) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('page-' + name).classList.add('active');
+  el.classList.add('active');
+  topbars.forEach(t => document.getElementById('topbar-' + t).style.display = t === name ? 'flex' : 'none');
+  if (name === 'campaigns') loadCampaigns();
+  if (name === 'users') loadUsers();
+  if (name === 'logs') loadLogs();
+}
+
+// API
+async function req(method, path, body) {
+  const r = await fetch(API + path, {
+    method,
+    headers: { 'Content-Type': 'application/json', ...(token ? { Authorization: `Bearer ${token}` } : {}) },
+    ...(body ? { body: JSON.stringify(body) } : {})
+  });
+  return { data: await r.json(), ok: r.ok };
+}
+
+// TOAST
+function toast(msg, type = '') {
+  const wrap = document.getElementById('toasts');
+  const t = document.createElement('div');
+  t.className = 'toast ' + type;
+  t.textContent = msg;
+  wrap.appendChild(t);
+  setTimeout(() => t.remove(), 3500);
+}
+
+// MODAL
+function openNewCampaign() { document.getElementById('modal-campaign').classList.add('show'); }
+function openNewUser() { document.getElementById('modal-user').classList.add('show'); }
+function closeModal(id) { document.getElementById(id).classList.remove('show'); }
+
+// CHANNEL PICKER
+function selectChannel(val, el) {
+  document.querySelectorAll('.channel-opt').forEach(o => o.classList.remove('selected'));
+  el.classList.add('selected');
+  document.getElementById('c-chan').value = val;
+}
+
+// DASHBOARD
+async function loadDash() {
+  const [c, u, d] = await Promise.all([
+    req('GET', '/api/campaigns'),
+    req('GET', '/api/users'),
+    req('GET', '/api/deliveries')
+  ]);
+  document.getElementById('d-camps').textContent = c.data.total ?? '—';
+  document.getElementById('d-users').textContent = u.data.total ?? '—';
+  document.getElementById('d-dels').textContent = d.data.total ?? '—';
+
+  const items = (c.data.items || []).slice(0, 5);
+  const el = document.getElementById('dash-camp-list');
+  if (!items.length) { el.innerHTML = '<div class="empty"><div class="empty-icon">📭</div><div class="empty-text">Henüz kampanya yok</div></div>'; return; }
+  el.innerHTML = `<div class="table-wrap"><table>
+    <thead><tr><th>Başlık</th><th>Kanal</th><th>Durum</th><th>Gönderim</th><th>Tarih</th></tr></thead>
+    <tbody>${items.map(c => `<tr>
+      <td class="bold">${c.title}</td>
+      <td>${channelBadge(c.channel)}</td>
+      <td>${statusBadge(c.status)}</td>
+      <td>${c._count?.deliveries ?? 0} kişi</td>
+      <td>${fmtDate(c.createdAt)}</td>
+    </tr>`).join('')}</tbody>
+  </table></div>`;
+}
+
+// CAMPAIGNS
+async function loadCampaigns() {
+  const { data } = await req('GET', '/api/campaigns');
+  const items = data.items || [];
+  const el = document.getElementById('camp-list');
+  if (!items.length) { el.innerHTML = '<div class="empty"><div class="empty-icon">📭</div><div class="empty-text">Henüz kampanya yok. Sağ üstten yeni kampanya oluşturun.</div></div>'; return; }
+  el.innerHTML = `<div class="table-wrap"><table>
+    <thead><tr><th>#</th><th>Başlık</th><th>Kanal</th><th>Durum</th><th>Gönderim</th><th>Oluşturulma</th><th>İşlem</th></tr></thead>
+    <tbody>${items.map(c => `<tr>
+      <td>${c.id}</td>
+      <td class="bold">${c.title}</td>
+      <td>${channelBadge(c.channel)}</td>
+      <td>${statusBadge(c.status)}</td>
+      <td>${c._count?.deliveries ?? 0} kişi</td>
+      <td>${fmtDate(c.createdAt)}</td>
+      <td><button class="btn btn-green" style="padding:6px 14px;font-size:12px" onclick="openSend(${c.id},'${c.title}','${c.message?.slice(0,60)}...','${c.channel}')">▶ Gönder</button></td>
+    </tr>`).join('')}</tbody>
+  </table></div>`;
+}
+
+async function createCampaign() {
+  const title = document.getElementById('c-title').value.trim();
+  const msg = document.getElementById('c-msg').value.trim();
+  const channel = document.getElementById('c-chan').value;
+  if (!title || !msg) { toast('Başlık ve mesaj zorunludur', 'error'); return; }
+  const { data, ok } = await req('POST', '/api/campaigns', { title, message: msg, channel });
+  if (ok) {
+    closeModal('modal-campaign');
+    toast('✓ Kampanya oluşturuldu!', 'success');
+    document.getElementById('c-title').value = '';
+    document.getElementById('c-msg').value = '';
+    loadCampaigns(); loadDash();
+  } else {
+    toast(data.message || 'Bir hata oluştu', 'error');
+  }
+}
+
+function openSend(id, title, msg, channel) {
+  currentSendId = id;
+  document.getElementById('send-title').textContent = title;
+  document.getElementById('send-msg').textContent = msg;
+  document.getElementById('send-channel').textContent = channel === 'both' ? '📧📲 E-posta + WhatsApp' : channel === 'email' ? '📧 E-posta' : channel === 'whatsapp' ? '💬 WhatsApp' : '📱 SMS';
+  document.getElementById('send-channel').className = 'badge badge-blue';
+  document.getElementById('modal-send').classList.add('show');
+}
+
+async function doSendCampaign() {
+  if (!currentSendId) return;
+  const { data, ok } = await req('POST', `/api/campaigns/${currentSendId}/send`);
+  closeModal('modal-send');
+  if (ok) {
+    const d = data.data;
+    toast(`✓ Gönderildi! ${d.successCount} başarılı, ${d.failCount} başarısız`, 'success');
+    loadCampaigns(); loadDash();
+  } else {
+    toast(data.message || 'Gönderim başarısız', 'error');
+  }
+}
+
+// USERS
+async function loadUsers() {
+  const { data } = await req('GET', '/api/users');
+  const items = data.items || [];
+  const el = document.getElementById('user-list');
+  if (!items.length) { el.innerHTML = '<div class="empty"><div class="empty-icon">👤</div><div class="empty-text">Henüz kullanıcı yok. Sağ üstten kullanıcı ekleyin.</div></div>'; return; }
+  el.innerHTML = `<div class="table-wrap"><table>
+    <thead><tr><th>#</th><th>Ad Soyad</th><th>E-posta</th><th>Telefon</th><th>Durum</th><th>İşlem</th></tr></thead>
+    <tbody>${items.map(u => `<tr>
+      <td>${u.id}</td>
+      <td class="bold">${u.name || '—'}</td>
+      <td>${u.email || '—'}</td>
+      <td>${u.phone || '—'}</td>
+      <td><span class="badge ${u.isActive ? 'badge-green' : 'badge-red'}">${u.isActive ? '● Aktif' : '○ Pasif'}</span></td>
+      <td><button class="btn btn-red" style="padding:6px 12px;font-size:12px" onclick="deleteUser(${u.id},'${u.name || u.email}')">Sil</button></td>
+    </tr>`).join('')}</tbody>
+  </table></div>`;
+}
+
+async function createUser() {
+  const name = document.getElementById('u-name').value.trim();
+  const email = document.getElementById('u-email').value.trim();
+  const phone = document.getElementById('u-phone').value.trim();
+  if (!email && !phone) { toast('En az e-posta veya telefon girilmelidir', 'error'); return; }
+  const body = { preferredChannel: 'both' };
+  if (name) body.name = name;
+  if (email) body.email = email;
+  if (phone) body.phone = phone;
+  const { data, ok } = await req('POST', '/api/users', body);
+  if (ok) {
+    closeModal('modal-user');
+    toast('✓ Kullanıcı eklendi!', 'success');
+    document.getElementById('u-name').value = '';
+    document.getElementById('u-email').value = '';
+    document.getElementById('u-phone').value = '';
+    loadUsers(); loadDash();
+  } else {
+    toast(data.message || 'Bir hata oluştu', 'error');
+  }
+}
+
+async function deleteUser(id, name) {
+  if (!confirm(`"${name}" adlı kullanıcıyı silmek istediğinizden emin misiniz?`)) return;
+  const { data, ok } = await req('DELETE', `/api/users/${id}`);
+  if (ok) {
+    toast('✓ Kullanıcı silindi', 'success');
+    loadUsers(); loadDash();
+  } else {
+    toast(data.message || 'Silinemedi', 'error');
+  }
+}
+async function loadLogs() {
+  const cid = document.getElementById('log-filter')?.value;
+  const { data } = await req('GET', '/api/deliveries' + (cid ? `?campaignId=${cid}` : ''));
+  const items = data.items || [];
+  const el = document.getElementById('log-list');
+  if (!items.length) { el.innerHTML = '<div class="empty"><div class="empty-icon">📋</div><div class="empty-text">Gönderim kaydı bulunamadı</div></div>'; return; }
+  el.innerHTML = `<div class="table-wrap"><table>
+    <thead><tr><th>#</th><th>Kampanya</th><th>Kullanıcı</th><th>Kanal</th><th>Sonuç</th><th>Hata</th><th>Saat</th></tr></thead>
+    <tbody>${items.map(d => `<tr>
+      <td>${d.id}</td>
+      <td class="bold">${d.campaign?.title || '#' + d.campaignId}</td>
+      <td>${d.user?.name || d.user?.email || '#' + d.userId}</td>
+      <td>${channelBadge(d.channel)}</td>
+      <td><span class="badge ${d.status === 'success' ? 'badge-green' : d.status === 'failed' ? 'badge-red' : 'badge-amber'}">${d.status === 'success' ? '✓ Başarılı' : d.status === 'failed' ? '✗ Başarısız' : '⏳ Bekliyor'}</span></td>
+      <td style="font-size:11px;color:var(--red);max-width:200px;word-break:break-word">${d.errorMessage ? d.errorMessage.slice(0, 80) + (d.errorMessage.length > 80 ? '...' : '') : '—'}</td>
+      <td style="white-space:nowrap">${fmtTime(d.createdAt)}</td>
+    </tr>`).join('')}</tbody>
+  </table></div>`;
+}
+
+// HELPERS
+function channelBadge(ch) {
+  if (ch === 'both') return '<span class="badge badge-blue">📧📲 Her ikisi</span>';
+  if (ch === 'email') return '<span class="badge badge-gray">📧 E-posta</span>';
+  if (ch === 'whatsapp') return '<span class="badge badge-green">💬 WhatsApp</span>';
+  if (ch === 'sms') return '<span class="badge badge-amber">📱 SMS</span>';
+  return ch;
+}
+function statusBadge(s) {
+  if (s === 'completed') return '<span class="badge badge-green">✓ Tamamlandı</span>';
+  if (s === 'sending') return '<span class="badge badge-amber">⏳ Gönderiliyor</span>';
+  if (s === 'failed') return '<span class="badge badge-red">✗ Başarısız</span>';
+  return '<span class="badge badge-gray">○ Taslak</span>';
+}
+function fmtDate(d) { return new Date(d).toLocaleDateString('tr-TR', { day:'2-digit', month:'short', year:'numeric' }); }
+function fmtTime(d) { return new Date(d).toLocaleTimeString('tr-TR', { hour:'2-digit', minute:'2-digit' }); }
+
+// Close modal on bg click
+document.querySelectorAll('.modal-bg').forEach(m => m.addEventListener('click', e => { if (e.target === m) m.classList.remove('show'); }));
+</script>
+</body>
+</html>
